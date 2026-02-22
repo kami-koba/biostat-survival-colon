@@ -19,7 +19,7 @@ Le traitement combiné **Levamisole + 5FU** est associé à une amélioration de
 → réduction d’environ 31% du risque de décès
 
 ## Courbe de survie
-![Courbe Kaplan-Meier](km_curve.png)
+![Courbe Kaplan-Meier](graphique_rapport.png)
 
 ## Outils
 R — survival, dplyr, RMarkdown

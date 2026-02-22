@@ -6,7 +6,7 @@
 ## Rapport interactif
 [Voir `report.html`
 :::
-## Méthodologie
+](https://kami-koba.github.io/biostat-survival-colon/report_colon.html)## Méthodologie
 - Préparation des données (1 ligne par patient)
 - Statistiques descriptives
 - Courbes de Kaplan–Meier

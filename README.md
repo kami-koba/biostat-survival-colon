@@ -4,9 +4,10 @@
 ## Objectif
 Étudier l’association entre le traitement et la survie globale chez des patients atteints de cancer du côlon.
 ## Rapport interactif
-[Voir `report.html`
+[Voir ``
 :::
-](https://kami-koba.github.io/biostat-survival-colon/report_colon.html)## Méthodologie
+](https://kami-koba.github.io/biostat-survival-colon/report_colon.html)
+## Méthodologie
 - Préparation des données (1 ligne par patient)
 - Statistiques descriptives
 - Courbes de Kaplan–Meier

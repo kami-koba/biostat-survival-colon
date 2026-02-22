@@ -1,4 +1,4 @@
-:::writing{variant="standard" id="10482"}
+
 # Analyse de survie — Essai clinique cancer colorectal
 
 ## Objectif
@@ -25,6 +25,7 @@ Le traitement combiné **Levamisole + 5FU** est associé à une amélioration de
 R — survival, dplyr, RMarkdown
 
 ## Rapport complet
-Voir `report.html`
+[Voir `report.html`
 :::
+](https://kami-koba.github.io/biostat-survival-colon/report_colon.html)
 # biostat-survival-colon

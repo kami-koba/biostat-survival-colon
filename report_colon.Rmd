@@ -1,0 +1,153 @@
+---
+title: "Analyse de survie — Cancer colorectal (dataset colon)"
+author: "Kami Victor KOBA"
+date: "2026-02-22"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(survival)
+library(dplyr)
+
+data("colon", package = "survival", envir = environment())
+```
+
+# 1. Objectif
+
+L’objectif de cette étude est de comparer la survie globale de patients atteints
+de cancer colorectal selon le traitement reçu :
+Observation, Levamisole, ou Levamisole + 5FU.
+
+Nous cherchons à déterminer si un traitement est associé à une meilleure survie.
+
+---
+
+# 2. Données
+
+Le jeu de données `colon` provient du package **survival** et contient
+des patients inclus dans un essai clinique.
+
+Chaque patient apparaît deux fois :
+- `etype = 1` : information de rechute
+- `etype = 2` : information de décès
+
+Pour analyser la **survie globale**, on conserve uniquement les observations
+correspondant au décès.
+
+---
+
+# 3. Préparation des données
+
+Nous transformons la base afin d’avoir **une seule ligne par patient** et
+créons une variable indiquant si le décès est observé (event = 1) ou censuré (event = 0).
+
+```{r}
+df <- colon %>%
+  filter(etype == 2) %>% 
+  mutate(
+    event = ifelse(status == 1, 1, 0),
+    trt = factor(rx)
+  )
+
+stopifnot(nrow(df) == length(unique(df$id)))
+
+table(df$trt)
+table(df$event)
+```
+
+Les groupes de traitement sont équilibrés et le nombre d’événements est
+suffisant pour réaliser une analyse de survie.
+
+---
+
+# 4. Description de la cohorte
+
+Avant toute analyse statistique, il est nécessaire de vérifier que les groupes
+sont comparables au départ.
+
+```{r}
+cat("N par traitement:\n")
+print(table(df$trt))
+
+cat("\nAge (moyenne, sd) par traitement:\n")
+print(aggregate(age ~ trt, data = df,
+                FUN = function(x) c(mean = mean(x, na.rm=TRUE), sd = sd(x, na.rm=TRUE))))
+
+cat("\nNodes (moyenne, sd) par traitement:\n")
+print(aggregate(nodes ~ trt, data = df,
+                FUN = function(x) c(mean = mean(x, na.rm=TRUE), sd = sd(x, na.rm=TRUE))))
+
+cat("\nSexe (%):\n")
+sex_tab <- table(df$trt, df$sex)
+print(round(prop.table(sex_tab, 1) * 100, 1))
+
+cat("\nDécès (%):\n")
+event_tab <- table(df$trt, df$event)
+print(round(prop.table(event_tab, 1) * 100, 1))
+```
+
+Les caractéristiques initiales sont globalement similaires entre les groupes,
+ce qui permet une comparaison pertinente de la survie.
+
+---
+
+# 5. Analyse de survie (Kaplan–Meier)
+
+Les courbes de Kaplan–Meier permettent d’estimer la probabilité de survie au
+cours du temps pour chaque traitement.
+
+```{r}
+surv_obj <- Surv(time = df$time, event = df$event)
+fit_km <- survfit(surv_obj ~ trt, data = df)
+
+par(bg = "white")
+cols <- c("red","blue","darkgreen")
+
+plot(fit_km, col = cols, lwd = 2,
+     xlab = "Temps (jours)", ylab = "Probabilité de survie",
+     main = "Survie globale selon le traitement")
+
+legend("bottomleft", legend = levels(df$trt), col = cols, lwd = 2, bty = "n")
+
+lr <- survdiff(surv_obj ~ trt, data = df)
+pval <- 1 - pchisq(lr$chisq, df = length(lr$n) - 1)
+mtext(paste0("Test log-rank : p = ", signif(pval, 3)), side = 3, line = 0.5, adj = 1)
+
+pval
+```
+
+Le test log-rank permet de déterminer si les différences observées entre les
+courbes sont compatibles avec le hasard.
+
+---
+
+# 6. Modèle de Cox
+
+Afin de quantifier l’effet du traitement sur le risque de décès, nous utilisons
+un modèle de Cox.
+
+```{r}
+cox_model <- coxph(Surv(time, event) ~ trt, data = df)
+summary(cox_model)
+```
+
+Le Hazard Ratio (HR) représente le risque relatif de décès comparé au groupe
+Observation.
+
+---
+
+# 7. Conclusion
+
+L’analyse de survie met en évidence une différence significative entre les
+traitements.
+
+Le traitement combiné **Levamisole + 5FU** est associé à la meilleure survie
+et à une réduction d’environ 31% du risque de décès par rapport à l’observation.
+
+Ces résultats suggèrent un bénéfice du traitement combiné, tout en restant
+interprétés comme une association statistique et non une preuve causale.
